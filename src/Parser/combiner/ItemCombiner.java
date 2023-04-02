@@ -10,4 +10,8 @@ public abstract class ItemCombiner extends Item {
 
     public abstract Item combine(ArrayList<Item> stack) throws ParseException;
 
+    @Override
+    public String toString() {
+        return "ITEM COMBINER, ERROR";
+    }
 }

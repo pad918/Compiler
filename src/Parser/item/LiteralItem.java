@@ -1,6 +1,6 @@
 package Parser.item;
 
-public class LiteralItem extends Item{
+public class LiteralItem extends ExpressionItem{
 
     public static enum LiteralType{Integer};
 

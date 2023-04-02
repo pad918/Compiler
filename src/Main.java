@@ -1,10 +1,21 @@
 import Parser.*;
+import Parser.combiner.ItemCombiner;
+import Parser.item.ExpressionItem;
+import Parser.item.IdentifierItem;
 import Parser.item.Item;
+import Parser.item.LiteralItem;
 import tokenizer.Token;
 import tokenizer.Tokenizer;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+
+/*
+*   TO DO:
+*       Rewrite functionCombiner to work like a stack.
+*
+* */
+
 
 public class Main {
     public static void main(String[] args) {
@@ -28,6 +39,21 @@ public class Main {
         }
         catch (ParseException e){
             e.printStackTrace();
+        }
+
+        System.out.println("TESTING:::");
+        ArrayList<Item> stack = new ArrayList<Item>();
+        stack.add(new IdentifierItem("arr"));
+        stack.add(new ExpressionItemParser.BasicExpressionCombiner());
+        stack.add(new LiteralItem(LiteralItem.LiteralType.Integer, 10));
+        //stack.add(new ExpressionItemParser.IndexItemCombiner());
+        ItemCombiner b = new ExpressionItemParser.IndexItemCombiner();
+        try {
+            Item i = b.combine(stack);
+            System.out.println(i);
+        }
+        catch (ParseException pe){
+            pe.printStackTrace();
         }
 
     }
