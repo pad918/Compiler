@@ -1,5 +1,6 @@
 package Parser;
 
+import Parser.combiner.FunctionCombiner;
 import Parser.combiner.ItemCombiner;
 import Parser.item.*;
 
@@ -72,10 +73,55 @@ public class ExpressionItemParser extends ItemParser{
                     if(right==null)
                         right = (ExpressionItem) top;
                     else{
-                        combined = new BinaryExpressionItem((ExpressionItem) top, right, operatorItem);
+                        ExpressionItem left = (ExpressionItem) top;
+                        combined = new BinaryExpressionItem(left, right, operatorItem);
                     }
                 } else if(top instanceof BinaryOperatorItem){
                     operatorItem = (BinaryOperatorItem) top;
+                }
+                else{
+                    throw new ParseException("Found unexpected item: " + top.toString(), 0);
+                }
+            }
+            return combined;
+        }
+    }
+
+    public static class FunctionIdentifierCombiner extends ItemCombiner{
+        //Converts one identifier into a function identifier
+        @Override
+        public Item combine(ArrayList<Item> stack) throws ParseException {
+            Item top = stack.get(stack.size()-1);
+            stack.remove(top);
+            //Should be done in superclass!
+            if(top instanceof ItemCombiner)
+                top = ((ItemCombiner) top).combine(stack);
+            if(!(top instanceof IdentifierItem))
+                throw new ParseException("Found unexpected item: " + top.toString(), 0);
+            IdentifierItem.FunctionIdentifierItem k = new IdentifierItem.FunctionIdentifierItem("aaa");
+
+            return new IdentifierItem.FunctionIdentifierItem((IdentifierItem) top);
+        }
+    }
+    public static class FunctionCallItemCombiner extends ItemCombiner{
+        @Override
+        public Item combine(ArrayList<Item> stack) throws ParseException {
+            FunctionCallItem combined = null;
+            IdentifierItem function = null;
+            ArrayList<ExpressionItem> arguments = new ArrayList<ExpressionItem>();
+            while (combined==null){
+                Item top = stack.get(stack.size()-1);
+                stack.remove(top);
+                if(top instanceof ItemCombiner) {
+                    stack.add(((ItemCombiner) top).combine(stack));
+                } else if (top instanceof IdentifierItem.FunctionIdentifierItem) {
+                    //Close
+                    ExpressionItem[] argArr = new ExpressionItem[arguments.size()];
+                    arguments.toArray(argArr);
+                    combined = new FunctionCallItem((IdentifierItem.FunctionIdentifierItem)top, argArr);
+                } else if(top instanceof ExpressionItem){
+                    // Add at zero to reverse the order
+                    arguments.add(0, (ExpressionItem) top);
                 }
                 else{
                     throw new ParseException("Found unexpected item: " + top.toString(), 0);
@@ -118,6 +164,29 @@ public class ExpressionItemParser extends ItemParser{
                 new Transition[]{ new Transition(closeBinaryExpression, new ExpressionItemParser())}
         );
 
+        /****************************** FUNCTION CALL *********************************/
+
+        State closeFunctionCall = new State(
+                new Transition[]    { new Transition(done, null)},
+                new ItemCombiner[]  { new FunctionCallItemCombiner()}
+        );
+        State addArgs = new State(new Transition[]{
+                new Transition(closeFunctionCall, new ExpectAtomParser(")"))
+        });
+        State addSingleArg = new State(new Transition[]{
+                new Transition(addArgs, new ExpressionItemParser())
+        });
+        addArgs.addTransition(new Transition(addSingleArg, new ExpectAtomParser(",")));
+        State getArgs = new State(
+                new Transition[]{
+                        new Transition(closeFunctionCall, new ExpectAtomParser(")")),
+                        new Transition(addArgs, new ExpressionItemParser())
+                },
+                new ItemCombiner[]{
+                        new FunctionIdentifierCombiner()
+                }
+        );
+
 
         /******************** BASIC LOOP ************************/
         //Order is important!
@@ -125,13 +194,23 @@ public class ExpressionItemParser extends ItemParser{
                 new Transition[]{
                     new Transition(index1, new ExpectAtomParser("[")),
                     new Transition(binary1, new BinaryOperatorParser()),
+                    new Transition(getArgs, new ExpectAtomParser("(")),
                     new Transition(done, null)
                 },
                 new ItemCombiner[]{
                     new BasicExpressionCombiner()
                 }
         );
+        /*State closePara = new State(
+                new Transition[]{
+                        new Transition(done, null)
+                },
+                new ItemCombiner[]{
+                        new BasicExpressionCombiner()
+                }
+        );*/
         State para2 = new State(new Transition[]{
+
                 new Transition(closeExpression, new ExpectAtomParser(")"))
         });
         State para1 = new State(new Transition[]{

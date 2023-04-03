@@ -12,8 +12,13 @@ import java.util.ArrayList;
 
 /*
 *   TO DO:
-*       Rewrite functionCombiner to work like a stack.
-*
+*       * Rewrite functionCombiner to work like a stack.
+*       * Statement parsing
+*       * Move combiner recurisve step to its superclass!
+*       * File parsing
+*       * Add more token types
+*       * Create a plan for how parsed items should be compiled to
+*           asm.
 * */
 
 

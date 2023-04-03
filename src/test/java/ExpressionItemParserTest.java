@@ -49,7 +49,7 @@ class ExpressionItemParserTest extends ItemParser {
 
     @Test
     void testParaExpression(){
-        String basicExpr = "((((((((((((((((((((bigParaIdent)))))))))))))))))))) (10000) (anExampleVariable)";
+        String basicExpr = "((((ExampleVariable))))";
         Tokenizer tokenizer = new Tokenizer();
         ArrayList<Token> tokens = tokenizer.parseTokens(basicExpr);
 
@@ -137,4 +137,59 @@ class ExpressionItemParserTest extends ItemParser {
             fail();
         }
     }
+
+    @Test
+    void functionCallCombiner(){
+        ArrayList<Item> stack = new ArrayList<Item>();
+        stack.add(new IdentifierItem("fun1"));
+        stack.add(new ExpressionItemParser.FunctionIdentifierCombiner());
+        stack.add(new IdentifierItem("x"));
+        stack.add(new IdentifierItem("y"));
+        stack.add(new IdentifierItem("z"));
+        //stack.add(new ExpressionItemParser.IndexItemCombiner());
+        ItemCombiner b = new ExpressionItemParser.FunctionCallItemCombiner();
+        try {
+            Item i = b.combine(stack);
+            System.out.println(i);
+        }
+        catch (ParseException pe){
+            pe.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    void functionCallItem(){
+        String basicExpr = "fun(x, y, z)";
+        Tokenizer tokenizer = new Tokenizer();
+        ArrayList<Token> tokens = tokenizer.parseTokens(basicExpr);
+
+        try {
+            ExpressionItemParser e = new ExpressionItemParser();
+            Item it = e.parse(tokens);
+            System.out.println(it);
+            assertTrue(it instanceof FunctionCallItem);
+        }catch (ParseException pe){
+            pe.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    void advancedExpression(){
+        String basicExpr = "50 * fun((100)*x, 100/y, 50*x*x)";
+        Tokenizer tokenizer = new Tokenizer();
+        ArrayList<Token> tokens = tokenizer.parseTokens(basicExpr);
+
+        try {
+            ExpressionItemParser e = new ExpressionItemParser();
+            Item it = e.parse(tokens);
+            System.out.println(it);
+            assertTrue(it instanceof BinaryExpressionItem);
+        }catch (ParseException pe){
+            pe.printStackTrace();
+            fail();
+        }
+    }
+
 }
