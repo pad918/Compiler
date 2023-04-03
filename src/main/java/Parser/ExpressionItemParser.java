@@ -68,7 +68,23 @@ public class ExpressionItemParser extends ItemParser{
 
         State done = new State(new Transition[0], true);
 
+        /****************************** INDEX STATES ******************************* */
+        State closeIndex = new State(
+                new Transition[]{ new Transition(done, null)},
+                false,
+                new ItemCombiner[]{ new IndexItemCombiner() }
+        );
+        State index2 = new State(new Transition[]{
+                new Transition(closeIndex, new ExpectAtomParser("]"))
+        });
+        State index1 = new State(new Transition[]{
+                new Transition(index2, new ExpressionItemParser())
+        });
+
+        /******************** BASIC LOOP ************************/
+
         State closeExpression = new State(new Transition[]{
+                new Transition(index1, new ExpectAtomParser("[")), //Order is important!
                 new Transition(done, null)
         }, new ItemCombiner[]{
                 new BasicExpressionCombiner()
@@ -77,10 +93,10 @@ public class ExpressionItemParser extends ItemParser{
                 new Transition(closeExpression, new ExpectAtomParser(")"))
         });
         State para1 = new State(new Transition[]{
-                new Transition(para2, new ExpressionItemParser()) // <-- PROBLEMBARNET!
+                new Transition(para2, new ExpressionItemParser())
         });
 
-        // Start must exist before para1...
+        // Can be moved to start now that nothing is static!
         start.addTransition(new Transition(closeExpression, new LiteralParser()));
         start.addTransition(new Transition(closeExpression, new IdentifierItemParser()));
         start.addTransition(new Transition(para1, new ExpectAtomParser("(")));

@@ -86,4 +86,22 @@ class ExpressionItemParserTest extends ItemParser {
             fail();
         }
     }
+
+    @Test
+    void testIndexExpression(){
+        String basicExpr = "arr[(10)] arr1[arr2[arr3[arr4]]]";
+        Tokenizer tokenizer = new Tokenizer();
+        ArrayList<Token> tokens = tokenizer.parseTokens(basicExpr);
+
+        try {
+            while(1<tokens.size()) {
+                ExpressionItemParser e = new ExpressionItemParser();
+                Item it = e.parse(tokens);
+                System.out.println(it);
+            }
+        }catch (ParseException pe){
+            pe.printStackTrace();
+            fail();
+        }
+    }
 }
