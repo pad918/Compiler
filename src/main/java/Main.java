@@ -42,19 +42,7 @@ public class Main {
         }
 
         System.out.println("TESTING:::");
-        ArrayList<Item> stack = new ArrayList<Item>();
-        stack.add(new IdentifierItem("arr"));
-        stack.add(new ExpressionItemParser.BasicExpressionCombiner());
-        stack.add(new LiteralItem(LiteralItem.LiteralType.Integer, 10));
-        //stack.add(new ExpressionItemParser.IndexItemCombiner());
-        ItemCombiner b = new ExpressionItemParser.IndexItemCombiner();
-        try {
-            Item i = b.combine(stack);
-            System.out.println(i);
-        }
-        catch (ParseException pe){
-            pe.printStackTrace();
-        }
+
 
     }
 }

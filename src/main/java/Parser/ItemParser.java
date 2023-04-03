@@ -7,12 +7,28 @@ import tokenizer.Token;
 import java.text.ParseException;
 import java.util.ArrayList;
 
+/*  Solving the static state problem:
+        Every parser has to have unique states to avoid
+        resetting each other states and other problems.
+
+        To avoid infinite recursion lazy initialization can
+        be used to initialize the states in a parser
+
+* */
+
 public abstract class ItemParser {
     protected State currentState;
+    protected State initialState; // should be final?
     public Item parse(ArrayList<Token> tokens) throws ParseException{
         ArrayList<Item> preParsedItems = preParse(tokens);
-        return combine(preParsedItems);
+        Item combined = combine(preParsedItems);
+        currentState = initialState; // Reset
+        return combined;
     }
+
+    // Lazy initialize the state graph to avoid infinite recursion
+    // when a parser has references to parser of its own kind.
+    public void init(){}
 
     /*
     * Goes through the states and parser collects all generated non-null items
@@ -21,6 +37,8 @@ public abstract class ItemParser {
     * */
     ArrayList<Item> preParse(ArrayList<Token> tokens) throws ParseException{
         ArrayList<Item> items = new ArrayList<Item>();
+        if(currentState==null)
+            init();
         while (!currentState.isFinalState()) {
             boolean foundTransition = false;
             for (Transition t : currentState) {

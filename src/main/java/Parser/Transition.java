@@ -28,6 +28,8 @@ public class Transition {
     public Item parse(ArrayList<Token> tokens) throws ParseException {
         if(parser==null)
             return null;
+        if(parser.initialState==null)
+            parser.init();
         Item i = parser.parse(tokens);
         return i;
     }
