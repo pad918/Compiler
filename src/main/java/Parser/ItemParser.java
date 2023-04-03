@@ -46,12 +46,12 @@ public abstract class ItemParser {
                 //Try if the transition is valid or not
                 try {
                     Item i = t.parse(tokens);
-                    State last = currentState;
+                    currentState.addPostCombiners(items);
                     //if success ==> change state and save i
                     currentState = t.getNextState();
                     if(i!=null)
                         items.add(i);
-                    last.addPostCombiners(items);
+
                     foundTransition = true;
                     break;
                 } catch (ParseException pe) {}

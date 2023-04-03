@@ -1,9 +1,7 @@
 package Parser;
 
-import Parser.combiner.FunctionCombiner;
 import Parser.combiner.ItemCombiner;
 import Parser.item.*;
-import tokenizer.Token;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -58,6 +56,34 @@ public class ExpressionItemParser extends ItemParser{
             return combined;
         }
     }
+    public static class BinaryExpressionItemCombiner extends ItemCombiner{
+        // Expects the following: (Expr, oppr, expr)
+        @Override
+        public Item combine(ArrayList<Item> stack) throws ParseException {
+            BinaryExpressionItem combined = null;
+            ExpressionItem right = null;
+            BinaryOperatorItem operatorItem = null;
+            while (combined==null){
+                Item top = stack.get(stack.size()-1);
+                stack.remove(top);
+                if(top instanceof ItemCombiner) {
+                    stack.add(((ItemCombiner) top).combine(stack));
+                } else if(top instanceof ExpressionItem){
+                    if(right==null)
+                        right = (ExpressionItem) top;
+                    else{
+                        combined = new BinaryExpressionItem((ExpressionItem) top, right, operatorItem);
+                    }
+                } else if(top instanceof BinaryOperatorItem){
+                    operatorItem = (BinaryOperatorItem) top;
+                }
+                else{
+                    throw new ParseException("Found unexpected item: " + top.toString(), 0);
+                }
+            }
+            return combined;
+        }
+    }
 
     @Override
     public void init() {
@@ -81,14 +107,30 @@ public class ExpressionItemParser extends ItemParser{
                 new Transition(index2, new ExpressionItemParser())
         });
 
-        /******************** BASIC LOOP ************************/
+        /***************************** Binary expressions *******************************/
 
-        State closeExpression = new State(new Transition[]{
-                new Transition(index1, new ExpectAtomParser("[")), //Order is important!
-                new Transition(done, null)
-        }, new ItemCombiner[]{
-                new BasicExpressionCombiner()
-        });
+        State closeBinaryExpression = new State(
+                new Transition[]{ new Transition(done, null)},
+                new ItemCombiner[]{ new BinaryExpressionItemCombiner() }
+        );
+
+        State binary1 = new State(
+                new Transition[]{ new Transition(closeBinaryExpression, new ExpressionItemParser())}
+        );
+
+
+        /******************** BASIC LOOP ************************/
+        //Order is important!
+        State closeExpression = new State(
+                new Transition[]{
+                    new Transition(index1, new ExpectAtomParser("[")),
+                    new Transition(binary1, new BinaryOperatorParser()),
+                    new Transition(done, null)
+                },
+                new ItemCombiner[]{
+                    new BasicExpressionCombiner()
+                }
+        );
         State para2 = new State(new Transition[]{
                 new Transition(closeExpression, new ExpectAtomParser(")"))
         });

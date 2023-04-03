@@ -14,7 +14,7 @@ import java.util.Arrays;
 // Special character can only form single tokens!
 public class Tokenizer {
     private static final String normalCharacters = "abcdefghijklmnopqrstuvwxyz";
-    private static final String specialCharacters = "!?-+=[]{}()<>;:,";
+    private static final String specialCharacters = "!?-+=*/[]{}()<>;:,";
     private TokenFactory[] factories;
 
     public Tokenizer(){
