@@ -138,6 +138,13 @@ public class ExpressionItemParser extends ItemParser{
         State start = new State(new Transition[0]);
         initialState = start;
 
+        State closeExpression = new State(
+                new Transition[0],
+                new ItemCombiner[]{
+                        new BasicExpressionCombiner()
+                }
+        );
+
         State done = new State(new Transition[0], true);
 
         /****************************** INDEX STATES ******************************* */
@@ -167,7 +174,7 @@ public class ExpressionItemParser extends ItemParser{
         /****************************** FUNCTION CALL *********************************/
 
         State closeFunctionCall = new State(
-                new Transition[]    { new Transition(done, null)},
+                new Transition[]    { new Transition(closeExpression, null)},
                 new ItemCombiner[]  { new FunctionCallItemCombiner()}
         );
         State addArgs = new State(new Transition[]{
@@ -190,17 +197,10 @@ public class ExpressionItemParser extends ItemParser{
 
         /******************** BASIC LOOP ************************/
         //Order is important!
-        State closeExpression = new State(
-                new Transition[]{
-                    new Transition(index1, new ExpectAtomParser("[")),
-                    new Transition(binary1, new BinaryOperatorParser()),
-                    new Transition(getArgs, new ExpectAtomParser("(")),
-                    new Transition(done, null)
-                },
-                new ItemCombiner[]{
-                    new BasicExpressionCombiner()
-                }
-        );
+        closeExpression.addTransition(new Transition(index1, new ExpectAtomParser("[")));
+        closeExpression.addTransition(new Transition(binary1, new BinaryOperatorParser()));
+        closeExpression.addTransition(new Transition(getArgs, new ExpectAtomParser("(")));
+        closeExpression.addTransition(new Transition(done, null));
         /*State closePara = new State(
                 new Transition[]{
                         new Transition(done, null)

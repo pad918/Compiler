@@ -177,7 +177,7 @@ class ExpressionItemParserTest extends ItemParser {
 
     @Test
     void advancedExpression(){
-        String basicExpr = "50 * fun((100)*x, 100/y, 50*x*x)";
+        String basicExpr = "fun((100)*x, 100/y, 50*x*x) * 111";
         Tokenizer tokenizer = new Tokenizer();
         ArrayList<Token> tokens = tokenizer.parseTokens(basicExpr);
 
